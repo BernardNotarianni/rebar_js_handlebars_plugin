@@ -144,13 +144,17 @@ normalize_paths(Paths, Basedir) ->
 normalize_path(Path, Basedir) ->
     filename:join([Basedir, Path]).
 
+template_name (Source, SourceExt) ->
+    string:join(string:tokens(filename:basename(Source, SourceExt),"-"),"/").
+
 build_each([]) ->
     ok;
 build_each([{Destination, Sources, Options} | Rest]) ->
     Target = option(target, Options),
     Compiler = option(compiler, Options),
     SourceExt = option(source_ext, Options),
-    Contents = [handlebars(filename:basename(Source, SourceExt), read(Source), Target, Compiler)
+
+    Contents = [handlebars(template_name(Source,SourceExt), read(Source), Target, Compiler)
                     || Source <- Sources],
     Concatenated = rebar_js_concatenator_plugin:concatenate(Contents),
     case file:write_file(Destination, Concatenated, [write]) of
